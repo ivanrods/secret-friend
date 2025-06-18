@@ -1,6 +1,3 @@
-
 export default function Home() {
-  return (
-   <div className="bg-[var(--background)] w-screen h-screen">Home</div>
-  );
+  return <div className="bg-background w-screen h-screen">Home</div>;
 }
