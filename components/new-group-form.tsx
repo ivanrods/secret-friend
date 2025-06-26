@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,9 +11,10 @@ import {
 } from "./ui/card";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { Mail, Trash2 } from "lucide-react";
+import { Loader, Mail, Trash2 } from "lucide-react";
 import { Separator } from "@radix-ui/react-separator";
-
+import { createGroup, CreateGroupState } from "@/app/app/grups/novo/actions";
+import { toast } from "sonner";
 interface Participant {
   name: string;
   email: string;
@@ -27,6 +28,14 @@ export default function NewGrupForm({
     { name: "", email: loggedUser.email },
   ]);
   const [grupName, setGrupName] = useState("");
+
+  const [state, formAction, pending] = useActionState<
+    CreateGroupState,
+    FormData
+  >(createGroup, {
+    success: null,
+    message: "",
+  });
 
   function updateParticipant(
     index: number,
@@ -45,19 +54,25 @@ export default function NewGrupForm({
     setParticipants(participants.concat({ name: "", email: "" }));
   }
 
+  useEffect(() => {
+    if (state.success === false) {
+      toast("Event has been created.");
+    }
+  }, [state]);
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Novo grupo</CardTitle>
         <CardDescription>Convide seus amigos para participar</CardDescription>
       </CardHeader>
-      <form action="">
+      <form action={formAction}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="grup-name">Nome do grupo</label>
+            <label htmlFor="group-name">Nome do grupo</label>
             <Input
-              id="grup-name"
-              name="grup-name"
+              id="group-name"
+              name="group-name"
               value={grupName}
               onChange={(e) => setGrupName(e.target.value)}
               placeholder="Digite o nome do grupo"
@@ -134,6 +149,7 @@ export default function NewGrupForm({
           >
             <Mail className="w-3 h-3" />
             Criar grupos e enviar emails
+            {pending && <Loader className="animate-spin" />}
           </Button>
         </CardFooter>
       </form>
