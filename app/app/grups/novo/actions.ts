@@ -18,15 +18,15 @@ export async function createGroup(
   if (authError) {
     return {
       success: false,
-      message: "Ocorreu um erro as criar o grupo",
+      message: "Ocorreu um erro ao criar o grupo",
     };
   }
 
   const names = formData.getAll("name");
   const emails = formData.getAll("email");
-  const groupName = formData.getAll("group-name");
+  const groupName = formData.get("group-name") as string;
 
-  const { data: newGrups, error } = await supabase
+  const { data: newGroup, error } = await supabase
     .from("groups")
     .insert({
       name: groupName,
@@ -38,16 +38,17 @@ export async function createGroup(
   if (error) {
     return {
       success: false,
-      message: "Ocorreu um erro as criar o grupo, tente novamente",
+      message: "Ocorreu um erro ao criar o grupo, tente novamente",
     };
   }
 
   const participants = names.map((name, index) => ({
-    group_id: newGrups.id,
+    group_id: newGroup.id,
     name,
     email: emails[index],
   }));
-  const { data: createParticipants, error: errorParticipants } = await supabase
+
+  const { data: createdParticipants, error: errorParticipants } = await supabase
     .from("participants")
     .insert(participants)
     .select();
@@ -55,11 +56,11 @@ export async function createGroup(
   if (errorParticipants) {
     return {
       success: false,
-      message: "Ocorreu um erro as criar o participantes, tente novamente",
+      message: "Ocorreu um erro ao criar os participantes, tente novamente",
     };
   }
 
-  const drawnParticipants = drawnGroup(createParticipants);
+  const drawnParticipants = drawnGroup(createdParticipants);
 
   const { error: errorDraw } = await supabase
     .from("participants")
@@ -68,12 +69,13 @@ export async function createGroup(
   if (errorDraw) {
     return {
       success: false,
-      message: "Ocorreu um erro as sortear os participantes, tente novamente",
+      message: "Ocorreu um erro ao sortear os participantes, tente novamente",
     };
   }
+
   const { error: errorResend } = await sendEmailToParticipants(
-    drewnParticipants,
-    groupName as string
+    drawnParticipants,
+    groupName
   );
 
   if (errorResend) {
@@ -82,7 +84,8 @@ export async function createGroup(
       message: errorResend,
     };
   }
-  redirect(`app/groups/${newGrups.id}`)
+
+  redirect(`/app/grups/${newGroup.id}`);
 }
 
 type Participant = {
@@ -93,23 +96,15 @@ type Participant = {
   assigned_to: string | null;
   created_at: string;
 };
+
 function drawnGroup(participants: Participant[]) {
-  const selectedParticipants: string[] = [];
+  const shuffled = [...participants].sort(() => Math.random() - 0.5);
 
-  return participants.map((participant) => {
-    const avalibleParticipants = participants.filter(
-      (p) => p.id !== participant.id && !selectedParticipants.includes(p.id)
-    );
-
-    const assignedParticipant =
-      avalibleParticipants[
-        Math.floor(Math.random() * avalibleParticipants.length)
-      ];
-    selectedParticipants.push(assignedParticipant.id);
-
+  return shuffled.map((participant, index) => {
+    const assignedIndex = (index + 1) % shuffled.length;
     return {
       ...participant,
-      assigned_to: assignedParticipant.id,
+      assigned_to: shuffled[assignedIndex].id,
     };
   });
 }
@@ -123,14 +118,14 @@ async function sendEmailToParticipants(
   try {
     await Promise.all(
       participants.map((participant) => {
-        resend.emails.send({
+        return resend.emails.send({
           from: "send@codante.io",
           to: participant.email,
           subject: `Sorteio de amigo secreto - ${groupName}`,
-          html: `<p>Você está participando do amigo secreto do grupo <strong>${groupName}</strong>. <br /> <br />
-              O seu amigo secreto é <strong>${
-                participants.find((p) => p.id === participant.assigned_to)?.name
-              }</strong></p>`,
+          html: `<p>Você está participando do amigo secreto do grupo <strong>${groupName}</strong>. <br /><br />
+          O seu amigo secreto é <strong>${
+            participants.find((p) => p.id === participant.assigned_to)?.name
+          }</strong></p>`,
         });
       })
     );
