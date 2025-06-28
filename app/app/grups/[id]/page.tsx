@@ -25,7 +25,7 @@ import { createClient } from "@/utils/supabase/server";
 export default async function GroupIdPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const supabase = await createClient();
   const { data: authUser } = await supabase.auth.getUser();
@@ -34,7 +34,7 @@ export default async function GroupIdPage({
     return <p>Usuário não autenticado.</p>;
   }
 
-  const groupId = params.id;
+  const groupId =  (await params).id;
 
   const { data, error } = await supabase
     .from("groups")
@@ -59,7 +59,7 @@ export default async function GroupIdPage({
   );
 
   return (
-    <main className="container mx-auto py-6">
+    <main className="container mx-auto py-6 px-4">
       <Card className="w-full max-w-3xl mx-auto">
         <CardHeader>
           <div className="flex items-center justify-between">

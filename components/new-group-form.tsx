@@ -68,7 +68,7 @@ export default function NewGrupForm({
       </CardHeader>
       <form action={formAction}>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
+          <div className="flex flex-col space-y-2">
             <label htmlFor="group-name">Nome do grupo</label>
             <Input
               id="group-name"
@@ -85,7 +85,7 @@ export default function NewGrupForm({
               key={index}
               className="flex flex-col md:flex-row items-end space-y-4 md:space-y0 md:space-x-4"
             >
-              <div className="flex-row space-y-2 w-full">
+              <div className="flex flex-col space-y-2 w-full">
                 <label htmlFor={`name-${index}`}>Nome</label>
                 <Input
                   id={`name-${index}`}
@@ -99,7 +99,7 @@ export default function NewGrupForm({
                 />
               </div>
 
-              <div className="flex-row space-y-2 w-full">
+              <div className="flex flex-col space-y-2 w-full">
                 <label htmlFor={`email-${index}`}>Email</label>
                 <Input
                   id={`email-${index}`}
@@ -133,7 +133,7 @@ export default function NewGrupForm({
           ))}
         </CardContent>
         <Separator className="my-4" />
-        <CardFooter className="flex flex-col md:flex-row justify-between space-y4 md:space-y-0">
+        <CardFooter className="flex flex-col md:flex-row justify-between space-y4 md:space-y-0 gap-4">
           <Button
             type="button"
             variant="outline"

@@ -12,7 +12,7 @@ export default async function NewGrupPage() {
   };
 
   return (
-    <div className="mt-48">
+    <div className="mt-48 mx-4">
       <NewGrupForm loggedUser={loggedUser} />
     </div>
   );
